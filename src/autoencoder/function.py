@@ -42,31 +42,35 @@ class AutoEncoder(object):
         print("\n ====================== \n")
 
     """update:学習"""
-    def update(self, data, mode=False):
-        data=tqdm(data)
-        # パラメータ計算
-        for batch, (X, y) in enumerate(data):
-            # 28*28を784次元に変換
-            X=X.reshape(784)
-            # device調整
-            X=X.to(self.__device)
-            # 学習用データXをAutoEncoderモデルに入力 -> 計算結果 出力Y
-            X_hat=self.__model(X)
+    def update(self, data, mode=False, epoch=10):
+        # data=tqdm(data)
+        for e in range(epoch):
+            # 損失和
+            sum_loss=0
+            # パラメータ計算
+            for batch, (X, y) in enumerate(data):
+                # 28*28を784次元に変換
+                X=X.reshape(784)
+                # device調整
+                X=X.to(self.__device)
+                # 学習用データXをAutoEncoderモデルに入力 -> 計算結果 出力Y
+                X_hat=self.__model(X)
 
-            # 損失計算(ラベルYと予測Yとの最小二乗法による損失計算)
-            loss=self.__loss_func(X_hat, X)
+                # 損失計算(ラベルYと予測Yとの最小二乗法による損失計算)
+                loss=self.__loss_func(X_hat, X)
 
-            # 誤差逆伝播を計算
-            # 勾配値を0にする
-            self.__opt.zero_grad()
-            # 逆伝播を計算
-            loss.backward()
-            # 勾配を計算
-            self.__opt.step()
-            
-            loss=loss.item()
+                # 誤差逆伝播を計算
+                # 勾配値を0にする
+                self.__opt.zero_grad()
+                # 逆伝播を計算
+                loss.backward()
+                # 勾配を計算
+                self.__opt.step()
+                # 損失
+                loss=loss.item()
+                sum_loss+=loss
             # 損失を格納
-            self.__loss_history.append(loss)
+            self.__loss_history.append(sum_loss)
 
         # 損失保存
         if mode:
